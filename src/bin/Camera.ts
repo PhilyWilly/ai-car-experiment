@@ -2,6 +2,7 @@ class Camera {
     x: number;
     y: number;
     zoom: number;
+    version: number = 0;
 
     constructor(x: number, y: number, zoom: number) {
         this.x = x;
@@ -12,10 +13,12 @@ class Camera {
     move(dx: number, dy: number) {
         this.x += dx;
         this.y += dy;
+        this.version++;
     }
 
     setZoom(zoom: number) {
         this.zoom = zoom;
+        this.version++;
     }
 
     getViewPort(tileSize: number, canvasWidth: number, canvasHeight: number) {

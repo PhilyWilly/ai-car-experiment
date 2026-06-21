@@ -2,7 +2,8 @@ enum TileType {
     Road,
     Path,
     Grass,
-    Gravel,
+    Sand,
+    Transition,
 }
 
 export { TileType };
