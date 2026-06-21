@@ -19,10 +19,10 @@ class Camera {
     }
 
     getViewPort(tileSize: number, canvasWidth: number, canvasHeight: number) {
-        const left = Math.floor((this.x - canvasWidth / (2 * this.zoom)) / tileSize + 1);
-        const right = Math.floor((left + canvasWidth / this.zoom) / tileSize + 1);
-        const top = Math.floor((this.y - canvasHeight / (2 * this.zoom)) / tileSize + 1);
-        const bottom = Math.floor((top + canvasHeight / this.zoom) / tileSize + 1);
+        const top = Math.floor((this.y - canvasHeight / (2 * this.zoom)) / tileSize + 1) - 1;
+        const right = Math.floor((this.x + canvasWidth / (2 * this.zoom)) / tileSize + 1);
+        const bottom = Math.floor((this.y + canvasHeight / (2*this.zoom)) / tileSize + 1);
+        const left = Math.floor((this.x - canvasWidth / (2 * this.zoom)) / tileSize + 1) - 1;
         return { top, right, bottom, left };
     }
 }

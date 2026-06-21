@@ -23,12 +23,7 @@ class Game {
         this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d")!;
 
-        this.state = [[assetTiles()[0]!, assetTiles()[1]!, assetTiles()[2]!, assetTiles()[3]!, assetTiles()[4]!, assetTiles()[5]!],
-                      [assetTiles()[0]!, assetTiles()[1]!, assetTiles()[2]!, assetTiles()[3]!, assetTiles()[4]!, assetTiles()[5]!],
-                      [assetTiles()[0]!, assetTiles()[1]!, assetTiles()[2]!, assetTiles()[3]!, assetTiles()[4]!, assetTiles()[5]!],
-                      [assetTiles()[0]!, assetTiles()[1]!, assetTiles()[2]!, assetTiles()[3]!, assetTiles()[4]!, assetTiles()[5]!],
-                      [assetTiles()[0]!, assetTiles()[1]!, assetTiles()[2]!, assetTiles()[3]!, assetTiles()[4]!, assetTiles()[5]!],
-                      [assetTiles()[0]!, assetTiles()[1]!, assetTiles()[2]!, assetTiles()[3]!,(assetTiles())[4]!,assetTiles()[5]!]];
+        this.state = [[assetTiles()[0]!]];
         this.camera = new Camera(0, 0, 1);
         this.canvas.addEventListener("mousedown", (event) => {
             this.drag = true;
@@ -70,14 +65,30 @@ class Game {
         setInterval(() => this.drawState(), interval);
     }
 
+    private generateTile(x: number, y: number): AssetTile {
+        const tile = assetTiles()[Math.floor(Math.random() * assetTiles().length)]!;
+        return tile;
+    }
+
     drawState() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        for (let y = 0; y < this.state.length; y++) {
-            for (let x = 0; x < this.state[y]!.length; x++) {
+        const viewPort = this.camera.getViewPort(tileSize, this.canvas.width, this.canvas.height);
+        const top = viewPort.top;
+        const right = viewPort.right;
+        const bottom = viewPort.bottom;
+        const left = viewPort.left;
+
+        for (let y = top; y < bottom; y++) {
+            if (this.state[y] === undefined) {
+                this.state[y] = [];
+            }
+            for (let x = left; x < right; x++) {
+                if (this.state[y]![x] === undefined) {
+                    this.state[y]![x] = this.generateTile(x, y);
+                }
                 const tile = this.state[y]![x];
                 const img = this.cache.get(tile!.path);
                 if (!img) {
-                    console.error("Image not found for tile:", tile!.path);
+                    this.loadAssets();
                     continue;
                 }
                 const screenX = (x * tileSize - this.camera.x) * this.camera.zoom + this.canvas.width / 2;
@@ -86,7 +97,6 @@ class Game {
                 this.ctx.drawImage(img, screenX, screenY, size, size);
             }
         }
-        console.log(this.camera.getViewPort(tileSize, this.canvas.width, this.canvas.height));
     }
 }
 
