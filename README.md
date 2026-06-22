@@ -4,4 +4,4 @@ My goal with this project is to create a simple top-down 2D car game which gets 
 
 ## Assets
 
-The assets for this project are from [Kenney's Asset Packs](https://kenney.nl/assets/top-down-tanks-remastered). 
+The assets for this project are from [Kenney's Asset Packs Map](https://kenney.nl/assets/top-down-tanks-remastered) and [Kenney's Racing Pack Cars](https://kenney.nl/assets/racing-pack). 
