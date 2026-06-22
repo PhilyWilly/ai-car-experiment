@@ -10,13 +10,22 @@ class Camera {
         this.zoom = zoom;
     }
 
-    move(dx: number, dy: number) {
+    moveBy(dx: number, dy: number) {
+        if (dx == 0 && dy == 0) return;
         this.x += dx;
         this.y += dy;
         this.version++;
     }
 
+    moveTo(dx: number, dy: number) {
+        if (this.x == dx && this.y == dy) return;
+        this.x = dx;
+        this.y = dy;
+        this.version++;
+    }
+
     setZoom(zoom: number) {
+        if (zoom == this.zoom) return;
         this.zoom = zoom;
         this.version++;
     }
@@ -27,6 +36,10 @@ class Camera {
         const bottom = Math.floor((this.y + canvasHeight / (2*this.zoom)) / tileSize + 1);
         const left = Math.floor((this.x - canvasWidth / (2 * this.zoom)) / tileSize + 1) - 1;
         return { top, right, bottom, left };
+    }
+
+    update() {
+        this.version++;
     }
 }
 

@@ -13,7 +13,6 @@ class GameMap {
     
     state: AssetTile[][];
     private cache: Map<string, HTMLImageElement> = new Map();
-    oldCameraVersion: number = -1;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera) {
         this.canvas = canvas;
@@ -91,7 +90,7 @@ class GameMap {
         const img = this.cache.get(tile!.path);
         if (!img) {
             this.loadAsset(tile!.path);
-            this.oldCameraVersion = -1;
+            this.camera.update();
             return;
         }
         const screenX = (x * tileSize - this.camera.x) * this.camera.zoom + this.canvas.width / 2;
@@ -101,8 +100,7 @@ class GameMap {
     }
 
     drawState() {
-        if (this.oldCameraVersion == this.camera.version) return;
-        this.oldCameraVersion = this.camera.version;
+        // console.log("Drawing map");
         
         const viewPort = this.camera.getViewPort(tileSize, this.canvas.width, this.canvas.height);
         const top = viewPort.top;
@@ -117,7 +115,7 @@ class GameMap {
         const centerY = Math.floor(this.camera.y / tileSize);
 
         this.drawTile(centerX, centerY);
-        
+
         for (let radius = 1; radius < maxRadius; radius++) {
             for (let i = 0; i < radius*4; i++) {
                 const div = Math.floor(i/(radius));

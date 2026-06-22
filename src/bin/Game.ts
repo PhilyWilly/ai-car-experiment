@@ -1,5 +1,6 @@
 import { Camera } from "./Camera.js";
 import { GameMap } from "./GameMap.js";
+import { Car } from "./Car.js";
 
 const maxZoom: number = 4;
 const minZoom: number = 0.3;
@@ -8,17 +9,19 @@ class Game {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     
-    camera: Camera;
+    camera: Camera = new Camera(0, 0, 1);
     map: GameMap;
-    drag: boolean = false;
+    car: Car;
 
+    drag: boolean = false;
+    oldCameraVersion: number = -1;
 
     constructor() {
         console.log("Game started");
         this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
         this.ctx = this.canvas.getContext("2d")!;
 
-        this.camera = new Camera(0, 0, 1);
+        this.car = new Car(this.canvas, this.ctx, this.camera);
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
         this.canvas.addEventListener("mousedown", (event) => {
             this.drag = true;
@@ -26,9 +29,45 @@ class Game {
         this.canvas.addEventListener("mouseup", (event) => {
             this.drag = false;
         }); 
+        document.addEventListener("keydown", (event) => {
+            switch  (event.key) {
+                case "ArrowUp":
+                case "w":
+                    this.car.acceleration = 0.5;
+                    break;
+                case "ArrowDown":
+                case "s":
+                    this.car.acceleration = -0.5;
+                    break;
+                case "ArrowLeft":
+                case "a":
+                    this.car.steering = -0.05;
+                    break;
+                case "ArrowRight":
+                case "d":
+                    this.car.steering = 0.05;
+                    break;
+            }
+        });
+        document.addEventListener("keyup", (event) => {
+            switch  (event.key) {
+                case "ArrowUp":
+                case "w":
+                case "ArrowDown":
+                case "s":
+                    this.car.acceleration = 0;
+                    break;
+                case "ArrowLeft":
+                case "a":
+                case "ArrowRight":
+                case "d":
+                    this.car.steering = 0;
+                    break;
+            }
+        });
         this.canvas.addEventListener("mousemove", (event) => {
             if (this.drag) {
-                this.camera.move(-event.movementX * 1/this.camera.zoom, -event.movementY * 1/this.camera.zoom);
+                this.camera.moveBy(-event.movementX * 1/this.camera.zoom, -event.movementY * 1/this.camera.zoom);
             }
         });
         this.canvas.addEventListener("wheel", (event) => {
@@ -44,7 +83,15 @@ class Game {
     startGameLoop() {
         const fps = 20;
         const interval = 1000 / fps;
-        setInterval(() => this.map.drawState(), interval);
+        setInterval(() => { 
+            this.car.gameTick();
+            // this.car.centerCamera();
+            if (this.oldCameraVersion != this.camera.version) {
+                this.oldCameraVersion = this.camera.version;
+                this.map.drawState(); 
+                this.car.drawCar();
+            }
+        }, interval);
     }
 }
 
