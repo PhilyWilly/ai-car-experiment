@@ -1,7 +1,7 @@
 import type { Camera } from "./Camera.js";
 
 const tileSize: number = 64;
-const carSize: number = 0.25;
+const carSize: number = 0.2;
 const stopMovingThreshold: number = 0.05;
 
 class Car {
@@ -11,8 +11,8 @@ class Car {
 
     image: HTMLImageElement;
 
-    x: number = 32;
-    y: number = 32;
+    x: number = tileSize / 2;
+    y: number = tileSize / 2;
     angle: number = 0;
 
     velocity: number = 0;
@@ -50,9 +50,8 @@ class Car {
     }
 
     drawCar() {
-        const size = 0.25;
-        const carWidth = 71 * this.camera.zoom * size;
-        const carHeight = 131 * this.camera.zoom * size;
+        const carWidth = 71 * this.camera.zoom * carSize;
+        const carHeight = 131 * this.camera.zoom * carSize;
         const screenX = (this.x - this.camera.x) * this.camera.zoom + this.canvas.width / 2;
         const screenY = (this.y - this.camera.y) * this.camera.zoom + this.canvas.height / 2;
 

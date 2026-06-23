@@ -4,7 +4,7 @@ class Camera {
     zoom: number;
     version: number = 0;
 
-    constructor(x: number, y: number, zoom: number) {
+    constructor(x: number, y: number, zoom: number = 1) {
         this.x = x;
         this.y = y;
         this.zoom = zoom;
