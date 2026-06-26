@@ -8,9 +8,9 @@ const tileSize: number = 64;
 class GameMap {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
-    
+
     camera: Camera;
-    
+
     state: (AssetTile | null)[][];
     generatedTiles: number = 0;
     private cache: Map<string, HTMLImageElement> = new Map();
@@ -130,8 +130,8 @@ class GameMap {
         let centerX: number;
         let centerY: number;
         if (generateFromMiddle) {
-            const verRadius = Math.ceil((Math.ceil(this.canvas.height*(1/Math.sqrt(zoom))) + Math.abs(y)) / (tileSize));
-            const horRadius = Math.ceil((Math.ceil(this.canvas.width*(1/Math.sqrt(zoom))) + Math.abs(x)) / (tileSize));
+            const verRadius = Math.ceil((Math.ceil(this.canvas.height * (1 / Math.sqrt(zoom))) + Math.abs(y)) / (tileSize));
+            const horRadius = Math.ceil((Math.ceil(this.canvas.width * (1 / Math.sqrt(zoom))) + Math.abs(x)) / (tileSize));
 
             maxRadius = verRadius + horRadius;
             centerX = 0;
@@ -146,10 +146,10 @@ class GameMap {
         }
 
         for (let radius = 1; radius < maxRadius; radius++) {
-            for (let i = 0; i < radius*4; i++) {
+            for (let i = 0; i < radius * 4; i++) {
                 // Get the y and x coordinates of the tile to generate based on the radius and the index
-                const x = Math.abs(i-radius*2)-radius + centerX;
-                const y = Math.abs((i+radius)%(radius*4)-radius*2)-radius + centerY;
+                const x = Math.abs(i - radius * 2) - radius + centerX;
+                const y = Math.abs((i + radius) % (radius * 4) - radius * 2) - radius + centerY;
 
                 if (this.state[y] == undefined) {
                     this.state[y] = [];

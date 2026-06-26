@@ -20,10 +20,10 @@ const assetTiles = [
 
 function getRandomAssetTile(u: TileType | null, r: TileType | null, d: TileType | null, l: TileType | null): AssetTile {
     const eligibleTiles = assetTiles.filter(tile => {
-        return (u === null || tile.up === u) && 
-        (r === null || tile.right === r) && 
-        (d === null || tile.down === d) && 
-        (l === null || tile.left === l);
+        return (u === null || tile.up === u) &&
+            (r === null || tile.right === r) &&
+            (d === null || tile.down === d) &&
+            (l === null || tile.left === l);
     });
 
     if (eligibleTiles.length === 0) {

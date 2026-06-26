@@ -8,7 +8,7 @@ class AssetTile {
     left: TileType;
     probability: number;
 
-    constructor(path: string, up: TileType,right: TileType, down: TileType, left: TileType, probability: number = 1) {
+    constructor(path: string, up: TileType, right: TileType, down: TileType, left: TileType, probability: number = 1) {
         this.path = path;
         this.up = up;
         this.right = right;
