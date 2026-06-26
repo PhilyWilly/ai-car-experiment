@@ -112,17 +112,19 @@ class GameState {
 
         const localX = (Math.floor(worldX % TILE_SIZE) + TILE_SIZE) % TILE_SIZE;
         const localY = (Math.floor(worldY % TILE_SIZE) + TILE_SIZE) % TILE_SIZE;
+        const i = localY * TILE_SIZE + localX;
         const mask = this.map.getRoadMaskAt(tileX, tileY);
         if (!mask) {
             console.warn(`No road mask found for tile at (${tileX}, ${tileY})`);
             return false;
         }
-        const point = mask[localY * TILE_SIZE + localX];
-        if (point === undefined) {
-            console.warn(`No point found in road mask for local coordinates (${localX}, ${localY}) in tile at (${tileX}, ${tileY})`);
-            return false;
-        }
-        return mask[localY * TILE_SIZE + localX] === 1;
+        return ((mask![i >> 3]! >> (7 - (i & 7))) & 1) === 1;
+        // const point = mask[localY * TILE_SIZE + localX];
+        // if (point === undefined) {
+        //     console.warn(`No point found in road mask for local coordinates (${localX}, ${localY}) in tile at (${tileX}, ${tileY})`);
+        //     return false;
+        // }
+        // return mask[localY * TILE_SIZE + localX] === 1;
     }
 }
 

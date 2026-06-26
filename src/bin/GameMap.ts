@@ -53,13 +53,17 @@ class GameMap {
         ctx.drawImage(tileImage, 0, 0);
         const { data } = ctx.getImageData(0, 0, tileW, tileH);
 
-        const mask = new Uint8Array(tileW * tileH);
-        for (let i = 0; i < mask.length; i++) {
+        // const mask = new Uint8Array(tileW * tileH);
+        const pixelCount = tileW * tileH;
+        const mask = new Uint8Array(Math.ceil(pixelCount / 8)); // Each bit represents a pixel
+        for (let i = 0; i < pixelCount; i++) {
             const r = data[i * 4]!;
             const g = data[i * 4 + 1]!;
             const b = data[i * 4 + 2]!;
-            // reuse your existing color logic
-            mask[i] = (g > r + b) ? 1 : 0; // 1 = road, 0 = grass
+
+            const isGrass = (g > r + b) ? 1 : 0; // 1: grass, 0: road 
+            // mask[i] = isGrass; // For a int which looks like this: 0b00000001 or 0b00000000
+            mask[i >> 3]! |= isGrass << (7 - (i & 7)); // For a bit which looks like this: 0b01100101 or 0b00101011
         }
         return mask;
     }
