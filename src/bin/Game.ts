@@ -8,7 +8,7 @@ const minZoom: number = 0.3;
 class Game {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
-    
+
     camera: Camera = new Camera(0, 0, 1);
     map: GameMap;
     car: Car[];
@@ -23,14 +23,17 @@ class Game {
 
         this.car = [new Car(this.canvas, this.ctx, this.camera)];
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
+
+        this.resizeCanvas();
+
         this.canvas.addEventListener("mousedown", (event) => {
             this.drag = true;
-        }); 
+        });
         this.canvas.addEventListener("mouseup", (event) => {
             this.drag = false;
-        }); 
+        });
         document.addEventListener("keydown", (event) => {
-            switch  (event.key) {
+            switch (event.key) {
                 case "ArrowUp":
                 case "w":
                     this.car[0]!.acceleration = 0.5;
@@ -50,7 +53,7 @@ class Game {
             }
         });
         document.addEventListener("keyup", (event) => {
-            switch  (event.key) {
+            switch (event.key) {
                 case "ArrowUp":
                 case "ArrowDown":
                 case "w":
@@ -67,7 +70,7 @@ class Game {
         });
         this.canvas.addEventListener("mousemove", (event) => {
             if (this.drag) {
-                this.camera.moveBy(-event.movementX * 1/this.camera.zoom, -event.movementY * 1/this.camera.zoom);
+                this.camera.moveBy(-event.movementX * 1 / this.camera.zoom, -event.movementY * 1 / this.camera.zoom);
             }
         });
         this.canvas.addEventListener("wheel", (event) => {
@@ -76,26 +79,47 @@ class Game {
             const clampedZoom = Math.min(maxZoom, Math.max(minZoom, this.camera.zoom + zoomAmount));
             this.camera.setZoom(clampedZoom);
         });
+        window.onresize = () => {
+            this.resizeCanvas();
+        }
 
         this.startGameLoop();
+    }
+
+    resizeCanvas() {
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        this.canvas.width = screenWidth;
+        this.canvas.height = screenHeight;
+        this.drawCanvas();
     }
 
     startGameLoop() {
         const fps = 20;
         const interval = 1000 / fps;
         this.map.drawState();
-        setInterval(() => { 
-            this.car.forEach((c) => {
-                c.gameTick();
-                this.map.generateTiles(c.x, c.y); // Generate tiles around the car's position, even when not visible
-            });
-            // this.car[0]!.centerCamera();
-            if (this.oldCameraVersion != this.camera.version) {
-                this.oldCameraVersion = this.camera.version;
-                this.map.drawState(); 
-                this.car.forEach((c) => c.drawCar());
-            }
+        setInterval(() => {
+            this.gameTick();
         }, interval);
+    }
+
+    private gameTick() {
+        this.car.forEach((c) => {
+            c.gameTick();
+            this.map.generateTiles(c.x, c.y); // Generate tiles around the car's position, even when not visible
+        });
+        // this.car[0]!.centerCamera();
+        if (this.oldCameraVersion != this.camera.version) {
+            this.drawCanvas();
+        }
+    }
+
+    private drawCanvas() {
+        // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.oldCameraVersion = this.camera.version;
+        this.map.drawState();
+        this.car.forEach((c) => c.drawCar());
     }
 }
 
