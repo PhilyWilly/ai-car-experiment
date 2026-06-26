@@ -25,7 +25,7 @@ class Game {
 
         this.car = [new Car(this.canvas, this.ctx, this.camera)];
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
-        this.gameState = new GameState(this.ctx, this.canvas);
+        this.gameState = new GameState(this.canvas, this.ctx, this.map);
 
         this.resizeCanvas();
 

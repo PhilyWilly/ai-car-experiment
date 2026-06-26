@@ -13,6 +13,7 @@ class GameMap {
     state: (AssetTile | null)[][];
     generatedTiles: number = 0;
     private cache: Map<string, HTMLImageElement> = new Map();
+    private roadMasks: Map<string, Uint8Array> = new Map();
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, camera: Camera) {
         this.canvas = canvas;
@@ -26,11 +27,7 @@ class GameMap {
     private loadAssets() {
         for (const row of this.state) {
             for (const tile of row) {
-                if (!this.cache.has(tile!.path)) {
-                    const img = new Image();
-                    img.src = "assets/tiles/" + tile!.path;
-                    this.cache.set(tile!.path, img);
-                }
+                this.loadAsset(tile!.path);
             }
         }
     }
@@ -40,7 +37,31 @@ class GameMap {
             const img = new Image();
             img.src = "assets/tiles/" + path;
             this.cache.set(path, img);
+            img.onload = () => {
+                const mask = this.buildRoadMask(this.cache.get(path)!, tileSize, tileSize);
+                this.roadMasks.set(path, mask);
+                this.camera.update();
+            }
         }
+    }
+
+    private buildRoadMask(tileImage: HTMLImageElement, tileW: number, tileH: number): Uint8Array {
+        const offscreen = document.createElement('canvas');
+        offscreen.width = tileW;
+        offscreen.height = tileH;
+        const ctx = offscreen.getContext('2d', { willReadFrequently: true })!;
+        ctx.drawImage(tileImage, 0, 0);
+        const { data } = ctx.getImageData(0, 0, tileW, tileH);
+
+        const mask = new Uint8Array(tileW * tileH);
+        for (let i = 0; i < mask.length; i++) {
+            const r = data[i * 4]!;
+            const g = data[i * 4 + 1]!;
+            const b = data[i * 4 + 2]!;
+            // reuse your existing color logic
+            mask[i] = (g > r + b) ? 1 : 0; // 1 = road, 0 = grass
+        }
+        return mask;
     }
 
     private generateTile(x: number, y: number): AssetTile {
@@ -57,6 +78,12 @@ class GameMap {
         const requiredLeft = leftTile ? leftTile.right : null;
 
         return getRandomAssetTile(requiredUp, requiredRight, requiredDown, requiredLeft);
+    }
+
+    getRoadMaskAt(x: number, y: number): Uint8Array | undefined {
+        const tile = this.state[y]?.[x];
+        if (!tile) return;
+        return this.roadMasks.get(tile.path);
     }
 
     verifyTile(tile: AssetTile, requiredUp: boolean | null, requiredRight: boolean | null, requiredDown: boolean | null, requiredLeft: boolean | null) {
@@ -81,7 +108,6 @@ class GameMap {
         const img = this.cache.get(tile!.path);
         if (!img) {
             this.loadAsset(tile!.path);
-            this.camera.update();
             return;
         }
         const screenX = (x * tileSize - this.camera.x) * this.camera.zoom + this.canvas.width / 2;

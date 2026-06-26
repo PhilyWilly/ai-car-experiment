@@ -1,8 +1,10 @@
 import type { Camera } from "./Camera.js";
 import type { Car } from "./Car.js";
+import type { GameMap } from "./GameMap.js";
 
-const drawLine: boolean = true;
+const drawLine: boolean = false;
 const drawCircle: boolean = true;
+const TILE_SIZE: number = 64;
 
 class GameState {
     private camX: number | null = null;
@@ -17,20 +19,21 @@ class GameState {
     private halfCanvasHeight: number;
 
     private ctx: CanvasRenderingContext2D;
-    private imageData: ImageData | null = null;
+    private map: GameMap;
 
-    private frontSensor: number | null = null;
-    private frontLeftSensor: number | null = null;
-    private frontRightSensor: number | null = null;
-    private leftSensor: number | null = null;
-    private rightSensor: number | null = null;
-    private backSensor: number | null = null;
+    frontSensor: number = 0;
+    frontLeftSensor: number = 0;
+    frontRightSensor: number = 0;
+    leftSensor: number = 0;
+    rightSensor: number = 0;
+    backSensor: number = 0;
 
-    constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, map: GameMap) {
         this.halfCanvasWidth = canvas.width / 2;
         this.halfCanvasHeight = canvas.height / 2;
 
         this.ctx = ctx;
+        this.map = map;
     }
 
     update(car: Car, camera: Camera) {
@@ -41,9 +44,6 @@ class GameState {
         this.carX = car.x;
         this.carY = car.y;
         this.carAngle = car.angle;
-
-        this.imageData = this.ctx.getImageData(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-
 
         this.frontSensor = this.getSensorValue(0);
         this.frontLeftSensor = this.getSensorValue(-20 * Math.PI / 180);
@@ -69,7 +69,6 @@ class GameState {
         const step = Math.max(1, 1 / this.camZoom);
 
         let distance = 0;
-        let tileType: TileType | null = null;
         let sensorX = this.carX;
         let sensorY = this.carY;
         const sinA = Math.sin(sensorAngle);
@@ -79,11 +78,9 @@ class GameState {
             distance += step;
             sensorX = this.carX + sinA * distance;
             sensorY = this.carY - cosA * distance;
-            tileType = this.getTileTypeFromPosition(sensorX, sensorY);
-            if (tileType !== TileType.Road) {
+            if (this.isRoadAt(sensorX, sensorY)) {
                 break;
             }
-
         }
 
         if (drawCircle || drawLine) {
@@ -91,19 +88,15 @@ class GameState {
             const startScreenY = (this.carY - this.camY) * this.camZoom + this.halfCanvasHeight;
             const screenX = (sensorX - this.camX) * this.camZoom + this.halfCanvasWidth;
             const screenY = (sensorY - this.camY) * this.camZoom + this.halfCanvasHeight;
-            this.ctx.fillStyle = 'red';
+            this.ctx.fillStyle = 'green';
             if (drawLine) {
-                this.ctx.strokeStyle = 'green';
+                this.ctx.strokeStyle = 'red';
                 this.ctx.lineWidth = this.camZoom;
                 this.ctx.beginPath();
                 this.ctx.moveTo(startScreenX, startScreenY);
                 this.ctx.lineTo(screenX, screenY);
                 this.ctx.stroke();
             } if (drawCircle) {
-                this.ctx.beginPath();
-                this.ctx.arc(startScreenX, startScreenY, 4 * this.camZoom, 0, 2 * Math.PI);
-                this.ctx.fill();
-
                 this.ctx.beginPath();
                 this.ctx.arc(screenX, screenY, 4 * this.camZoom, 0, 2 * Math.PI);
                 this.ctx.fill();
@@ -113,37 +106,24 @@ class GameState {
         return (distance - 1) / MAX_DISTANCE;
     }
 
-    private getTileTypeFromPosition(x: number, y: number): TileType | null {
-        if (this.camX === null || this.camY === null || this.camZoom === null || this.imageData === null) {
-            throw new Error("Game state is not initialized");
-        }
-        const screenX = Math.round((x - this.camX) * this.camZoom + this.halfCanvasWidth);
-        const screenY = Math.round((y - this.camY) * this.camZoom + this.halfCanvasHeight);
+    private isRoadAt(worldX: number, worldY: number): boolean {
+        const tileX = Math.floor(worldX / TILE_SIZE);
+        const tileY = Math.floor(worldY / TILE_SIZE);
 
-        // Bounds check
-        if (screenX < 0 || screenY < 0 || screenX >= this.imageData.width || screenY >= this.imageData.height) {
-            return null;
+        const localX = (Math.floor(worldX % TILE_SIZE) + TILE_SIZE) % TILE_SIZE;
+        const localY = (Math.floor(worldY % TILE_SIZE) + TILE_SIZE) % TILE_SIZE;
+        const mask = this.map.getRoadMaskAt(tileX, tileY);
+        if (!mask) {
+            console.warn(`No road mask found for tile at (${tileX}, ${tileY})`);
+            return false;
         }
-
-        const index = (screenY * this.imageData.width + screenX) * 4;
-        const d = this.imageData.data;
-        return this.getTileTypeFromColor([d[index]!, d[index + 1]!, d[index + 2]!]);
+        const point = mask[localY * TILE_SIZE + localX];
+        if (point === undefined) {
+            console.warn(`No point found in road mask for local coordinates (${localX}, ${localY}) in tile at (${tileX}, ${tileY})`);
+            return false;
+        }
+        return mask[localY * TILE_SIZE + localX] === 1;
     }
-
-    private getTileTypeFromColor(color: [number, number, number]): TileType | null {
-        if (color[0] === 0 && color[1] === 0 && color[2] === 0) {
-            return null;
-        }
-        if (color[1] > color[0] + color[2]) {
-            return TileType.Grass;
-        }
-        return TileType.Road;
-    }
-}
-
-enum TileType {
-    Road,
-    Grass,
 }
 
 export { GameState };
