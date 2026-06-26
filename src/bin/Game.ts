@@ -11,6 +11,7 @@ class Game {
     ctx: CanvasRenderingContext2D;
 
     camera: Camera = new Camera(0, 0, 1);
+    gameState: GameState;
     map: GameMap;
     car: Car[];
 
@@ -24,6 +25,7 @@ class Game {
 
         this.car = [new Car(this.canvas, this.ctx, this.camera)];
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
+        this.gameState = new GameState(this.map, this.car[0]!, this.camera, this.ctx, this.canvas);
 
         this.resizeCanvas();
 
@@ -121,7 +123,7 @@ class Game {
         this.oldCameraVersion = this.camera.version;
         this.map.drawState();
         this.car.forEach((c) => c.drawCar());
-        new GameState(this.map, this.car[0]!, this.camera, this.ctx, this.canvas);
+        this.gameState = new GameState(this.map, this.car[0]!, this.camera, this.ctx, this.canvas);
     }
 }
 
