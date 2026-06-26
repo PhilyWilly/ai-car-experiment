@@ -11,7 +11,7 @@ class GameMap {
     
     camera: Camera;
     
-    state: AssetTile[][];
+    state: (AssetTile | null)[][];
     generatedTiles: number = 0;
     private cache: Map<string, HTMLImageElement> = new Map();
 
@@ -44,9 +44,9 @@ class GameMap {
         }
     }
 
-    private generateTile(x: number, y: number): AssetTile | null {
+    private generateTile(x: number, y: number): AssetTile {
         this.generatedTiles++;
-        console.log("Generating tile at", x, y, "Total generated:", this.generatedTiles);
+        // console.log("Generating tile at", x, y, "Total generated:", this.generatedTiles);
         const topTile = this.state[y - 1]?.[x];
         const rightTile = this.state[y]?.[x + 1];
         const bottomTile = this.state[y + 1]?.[x];
@@ -56,10 +56,6 @@ class GameMap {
         const requiredRight = rightTile ? rightTile.left : null;
         const requiredDown = bottomTile ? bottomTile.up : null;
         const requiredLeft = leftTile ? leftTile.right : null;
-
-        if (requiredUp === null && requiredRight === null && requiredDown === null && requiredLeft === null) {
-            return null;
-        }
 
         return getRandomAssetTile(requiredUp, requiredRight, requiredDown, requiredLeft);
     }
@@ -81,6 +77,7 @@ class GameMap {
     }
 
     private drawTile(x: number, y: number) {
+        if (this.state[y] == undefined || this.state[y]![x] == undefined) return;
         const tile = this.state[y]![x];
         const img = this.cache.get(tile!.path);
         if (!img) {
@@ -94,12 +91,59 @@ class GameMap {
         this.ctx.drawImage(img, screenX, screenY, size, size);
     }
 
+    replaceTiles(centerX: number, centerY: number, centerRadius: number) {
+        let error: boolean = false;
+        do {
+            error = false;
+            for (let x = centerX - centerRadius; x <= centerX + centerRadius; x++) {
+                for (let y = centerY - centerRadius; y <= centerY + centerRadius; y++) {
+                    if (this.state[y] === undefined) {
+                        this.state[y] = [];
+                    }
+                    this.state[y]![x] = null;
+                }
+            }
+            for (let x = centerX - centerRadius; x <= centerX + centerRadius; x++) {
+                for (let y = centerY - centerRadius; y <= centerY + centerRadius; y++) {
+                    try {
+                        this.state[y]![x] = this.generateTile(x, y);
+                        console.log("Replaced tile at", x, y, "with", this.state[y]![x]!.path);
+                    }
+                    catch (e) {
+                        if (e instanceof RangeError) {
+                            error = true;
+                            break;
+                        }
+                        else {
+                            throw e;
+                        }
+                    }
+                }
+            }
+        } while (error);
+        console.log("Replaced tiles around", centerX, centerY, "with radius", centerRadius);
+    }
+
     generateTiles(x: number, y: number, zoom: number = 1) {
-        const verRadius = Math.ceil(this.canvas.height / (tileSize * zoom * 2)) + 1;
-        const horRadius = Math.ceil(this.canvas.width / (tileSize * zoom * 2)) + 1;
-        const maxRadius = verRadius + horRadius ;
-        const centerX = Math.floor(x / tileSize);
-        const centerY = Math.floor(y / tileSize);
+        const generateFromMiddle = false;
+        let maxRadius: number;
+        let centerX: number;
+        let centerY: number;
+        if (generateFromMiddle) {
+            const verRadius = Math.ceil((Math.ceil(this.canvas.height*(1/Math.sqrt(zoom))) + Math.abs(y)) / (tileSize));
+            const horRadius = Math.ceil((Math.ceil(this.canvas.width*(1/Math.sqrt(zoom))) + Math.abs(x)) / (tileSize));
+
+            maxRadius = verRadius + horRadius;
+            centerX = 0;
+            centerY = 0;
+        }
+        else {
+            const verRadius = Math.ceil(this.canvas.height / (tileSize * zoom * 2)) + 1;
+            const horRadius = Math.ceil(this.canvas.width / (tileSize * zoom * 2)) + 1;
+            maxRadius = verRadius + horRadius;
+            centerX = Math.floor(x / tileSize);
+            centerY = Math.floor(y / tileSize);
+        }
 
         for (let radius = 1; radius < maxRadius; radius++) {
             for (let i = 0; i < radius*4; i++) {
@@ -107,15 +151,22 @@ class GameMap {
                 const x = Math.abs(i-radius*2)-radius + centerX;
                 const y = Math.abs((i+radius)%(radius*4)-radius*2)-radius + centerY;
 
-                if (this.state[y] === undefined) {
+                if (this.state[y] == undefined) {
                     this.state[y] = [];
                 }
                 if (this.state[y]![x] === undefined) {
-                    const generatedTile = this.generateTile(x, y);
-                    if (generatedTile === null) {
-                        return;
+                    try {
+                        this.state[y]![x] = this.generateTile(x, y);
                     }
-                    this.state[y]![x] = generatedTile;
+                    catch (e) {
+                        if (e instanceof RangeError) {
+                            console.warn("No eligible tiles found for the given constraints. Replacing surrounding tiles and trying again.");
+                            this.replaceTiles(x, y, 2);
+                        }
+                        else {
+                            throw e;
+                        }
+                    }
                 }
             }
         }

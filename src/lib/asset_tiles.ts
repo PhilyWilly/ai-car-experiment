@@ -27,8 +27,7 @@ function getRandomAssetTile(u: TileType | null, r: TileType | null, d: TileType 
     });
 
     if (eligibleTiles.length === 0) {
-        console.warn(`No eligible tiles found for requirements: up=${u}, right=${r}, down=${d}, left=${l}. Returning a random tile.`);
-        return assetTiles[0]!;
+        throw new RangeError(`No eligible tiles found for the given constraints: up=${u}, right=${r}, down=${d}, left=${l}`);
     }
     if (eligibleTiles.length === 1) {
         return eligibleTiles[0]!;
