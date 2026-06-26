@@ -1,14 +1,13 @@
-import { TileType } from "./TileType.js";
-
 class AssetTile {
     path: string;
-    up: TileType;
-    right: TileType;
-    down: TileType;
-    left: TileType;
+    // True for road, false for grass
+    up: boolean;
+    right: boolean;
+    down: boolean;
+    left: boolean;
     probability: number;
 
-    constructor(path: string, up: TileType, right: TileType, down: TileType, left: TileType, probability: number = 1) {
+    constructor(path: string, up: boolean, right: boolean, down: boolean, left: boolean, probability: number = 1) {
         this.path = path;
         this.up = up;
         this.right = right;

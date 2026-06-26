@@ -1,7 +1,6 @@
 import { assetTiles, getRandomAssetTile } from "../lib/asset_tiles.js";
 import type { AssetTile } from "./AssetTile.js";
 import type { Camera } from "./Camera.js";
-import type { TileType } from "./TileType.js";
 
 const tileSize: number = 64;
 
@@ -60,7 +59,7 @@ class GameMap {
         return getRandomAssetTile(requiredUp, requiredRight, requiredDown, requiredLeft);
     }
 
-    verifyTile(tile: AssetTile, requiredUp: TileType | null, requiredRight: TileType | null, requiredDown: TileType | null, requiredLeft: TileType | null) {
+    verifyTile(tile: AssetTile, requiredUp: boolean | null, requiredRight: boolean | null, requiredDown: boolean | null, requiredLeft: boolean | null) {
         if (requiredUp !== null && tile.up !== requiredUp) {
             return false;
         }
