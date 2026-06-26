@@ -1,6 +1,7 @@
 import { Camera } from "./Camera.js";
 import { GameMap } from "./GameMap.js";
 import { Car } from "./Car.js";
+import { GameState } from "./GameState.js";
 
 const maxZoom: number = 4;
 const minZoom: number = 0.3;
@@ -19,7 +20,7 @@ class Game {
     constructor() {
         console.log("Game started");
         this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-        this.ctx = this.canvas.getContext("2d")!;
+        this.ctx = this.canvas.getContext("2d", { willReadFrequently: true })!;
 
         this.car = [new Car(this.canvas, this.ctx, this.camera)];
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
@@ -120,6 +121,7 @@ class Game {
         this.oldCameraVersion = this.camera.version;
         this.map.drawState();
         this.car.forEach((c) => c.drawCar());
+        new GameState(this.map, this.car[0]!, this.camera, this.ctx, this.canvas);
     }
 }
 
