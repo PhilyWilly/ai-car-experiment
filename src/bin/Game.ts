@@ -25,7 +25,7 @@ class Game {
 
         this.car = [new Car(this.canvas, this.ctx, this.camera)];
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
-        this.gameState = new GameState(this.map, this.car[0]!, this.camera, this.ctx, this.canvas);
+        this.gameState = new GameState(this.ctx, this.canvas);
 
         this.resizeCanvas();
 
@@ -95,6 +95,7 @@ class Game {
         this.canvas.width = screenWidth;
         this.canvas.height = screenHeight;
         this.drawCanvas();
+        this.gameState.resize(this.canvas);
     }
 
     startGameLoop() {
@@ -123,7 +124,7 @@ class Game {
         this.oldCameraVersion = this.camera.version;
         this.map.drawState();
         this.car.forEach((c) => c.drawCar());
-        this.gameState = new GameState(this.map, this.car[0]!, this.camera, this.ctx, this.canvas);
+        this.gameState.update(this.car[0]!, this.camera);
     }
 }
 
