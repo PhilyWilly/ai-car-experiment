@@ -59,6 +59,17 @@ class GameState {
         this.halfCanvasHeight = canvas.height / 2;
     }
 
+    agentInput(): number[] {
+        return [
+            this.frontSensor,
+            this.frontLeftSensor,
+            this.frontRightSensor,
+            this.leftSensor,
+            this.rightSensor,
+            this.backSensor
+        ];
+    }
+
     private getSensorValue(angleOffset: number): number {
         if (this.camX === null || this.camY === null || this.camZoom === null || this.carX === null || this.carY === null || this.carAngle === null) {
             throw new Error("Camera or car state is not initialized");
@@ -119,12 +130,6 @@ class GameState {
             return false;
         }
         return ((mask![i >> 3]! >> (7 - (i & 7))) & 1) === 1;
-        // const point = mask[localY * TILE_SIZE + localX];
-        // if (point === undefined) {
-        //     console.warn(`No point found in road mask for local coordinates (${localX}, ${localY}) in tile at (${tileX}, ${tileY})`);
-        //     return false;
-        // }
-        // return mask[localY * TILE_SIZE + localX] === 1;
     }
 }
 

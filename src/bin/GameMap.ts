@@ -53,7 +53,6 @@ class GameMap {
         ctx.drawImage(tileImage, 0, 0);
         const { data } = ctx.getImageData(0, 0, tileW, tileH);
 
-        // const mask = new Uint8Array(tileW * tileH);
         const pixelCount = tileW * tileH;
         const mask = new Uint8Array(Math.ceil(pixelCount / 8)); // Each bit represents a pixel
         for (let i = 0; i < pixelCount; i++) {
@@ -62,15 +61,13 @@ class GameMap {
             const b = data[i * 4 + 2]!;
 
             const isGrass = (g > r + b) ? 1 : 0; // 1: grass, 0: road 
-            // mask[i] = isGrass; // For a int which looks like this: 0b00000001 or 0b00000000
-            mask[i >> 3]! |= isGrass << (7 - (i & 7)); // For a bit which looks like this: 0b01100101 or 0b00101011
+            mask[i >> 3]! |= isGrass << (7 - (i & 7)); // Set the corresponding bit in the mask
         }
         return mask;
     }
 
     private generateTile(x: number, y: number): AssetTile {
         this.generatedTiles++;
-        // console.log("Generating tile at", x, y, "Total generated:", this.generatedTiles);
         const topTile = this.state[y - 1]?.[x];
         const rightTile = this.state[y]?.[x + 1];
         const bottomTile = this.state[y + 1]?.[x];

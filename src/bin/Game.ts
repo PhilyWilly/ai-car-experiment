@@ -21,20 +21,21 @@ class Game {
     constructor() {
         console.log("Game started");
         this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-        this.ctx = this.canvas.getContext("2d", { willReadFrequently: true })!;
+        this.ctx = this.canvas.getContext("2d")!;
 
         this.car = [new Car(this.canvas, this.ctx, this.camera)];
         this.map = new GameMap(this.canvas, this.ctx, this.camera);
         this.gameState = new GameState(this.canvas, this.ctx, this.map);
 
         this.resizeCanvas();
+        this.initializeEventListeners();
+        this.startGameLoop();
+    }
 
-        this.canvas.addEventListener("mousedown", (event) => {
-            this.drag = true;
-        });
-        this.canvas.addEventListener("mouseup", (event) => {
-            this.drag = false;
-        });
+    initializeEventListeners() {
+        window.onresize =
+            this.resizeCanvas;
+
         document.addEventListener("keydown", (event) => {
             switch (event.key) {
                 case "ArrowUp":
@@ -71,6 +72,12 @@ class Game {
                     break;
             }
         });
+        this.canvas.addEventListener("mousedown", (event) => {
+            this.drag = true;
+        });
+        this.canvas.addEventListener("mouseup", (event) => {
+            this.drag = false;
+        });
         this.canvas.addEventListener("mousemove", (event) => {
             if (this.drag) {
                 this.camera.moveBy(-event.movementX * 1 / this.camera.zoom, -event.movementY * 1 / this.camera.zoom);
@@ -82,11 +89,6 @@ class Game {
             const clampedZoom = Math.min(maxZoom, Math.max(minZoom, this.camera.zoom + zoomAmount));
             this.camera.setZoom(clampedZoom);
         });
-        window.onresize = () => {
-            this.resizeCanvas();
-        }
-
-        this.startGameLoop();
     }
 
     resizeCanvas() {
